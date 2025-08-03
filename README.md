@@ -7,8 +7,6 @@ Organize your to-dos, stay productive, and never miss a task again.
 
 ## 🚀 Features
  
-## ✨ Features
-
 - ✅ **Add / Edit / Delete Tasks** — Quickly manage your daily tasks with ease.
 - 📂 **Main & Sub Tasks** — Organize your to-dos with hierarchy and context.
 - 💾 **Offline First** — All data stored locally using **SQLite**, no internet required.
@@ -25,6 +23,7 @@ Organize your to-dos, stay productive, and never miss a task again.
 - **Flutter** – UI development  
 - **Dart** – Programming language  
 - **SQLite** – Local data persistence  
+
 
 
 
