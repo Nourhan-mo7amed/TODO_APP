@@ -19,10 +19,6 @@ Organize your to-dos, stay productive, and never miss a task again.
 
 <!-- Add your demo video link or screenshots here -->
 **Demo Video**: [Insert demo link here]  
-**Screenshots**:  
-![screenshot1](link-to-screenshot1)  
-![screenshot2](link-to-screenshot2)
-
 ---
 
 ## 🛠️ Tech Stack
@@ -30,9 +26,5 @@ Organize your to-dos, stay productive, and never miss a task again.
 - **Flutter** – UI development  
 - **Dart** – Programming language  
 - **SQLite** – Local data persistence  
-- **Path Provider** – File system access
 
----
-
-## 📂 Folder Structure
 
