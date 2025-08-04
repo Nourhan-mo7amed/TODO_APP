@@ -5,6 +5,13 @@ Organize your to-dos, stay productive, and never miss a task again.
 
 ---
 
+## 🎬 Demo
+
+
+https://github.com/user-attachments/assets/1136815d-49dc-4fc3-8743-798007074d31
+
+
+---
 ## 🚀 Features
  
 - ✅ **Add / Edit / Delete Tasks** — Quickly manage your daily tasks with ease.
@@ -23,6 +30,7 @@ Organize your to-dos, stay productive, and never miss a task again.
 - **Flutter** – UI development  
 - **Dart** – Programming language  
 - **SQLite** – Local data persistence  
+
 
 
 
