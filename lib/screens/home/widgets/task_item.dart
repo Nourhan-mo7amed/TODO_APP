@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_app/cubits/tasks/task_cubit.dart';
+import 'package:todo_app/repositories/task_repository.dart';
 import 'package:todo_app/screens/task%20detail/TaskDetailScreen.dart';
 import 'package:todo_app/screens/home/widgets/AddSubTask.dart';
-import '../../../data/Sqldb.dart';
 
 class TaskItem extends StatelessWidget {
   final Map<String, dynamic> task;
-  final Sqldb db;
   final VoidCallback onRefresh;
 
   const TaskItem({
     super.key,
     required this.task,
-    required this.db,
     required this.onRefresh,
   });
 
@@ -29,8 +29,10 @@ class TaskItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final taskRepository = TaskRepository();
+
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: db.getSubTasks(task['id']),
+      future: taskRepository.getSubTasks(task['id']),
       builder: (context, snapshotSubs) {
         final subtasks = snapshotSubs.data ?? [];
         final done = subtasks.where((s) => s['is_done'] == 1).length;
@@ -82,9 +84,9 @@ class TaskItem extends StatelessWidget {
                     if (task['is_favorite'] == 1)
                       const Icon(Icons.favorite, color: Colors.pinkAccent),
                     PopupMenuButton<String>(
-                      onSelected: (val) async {
+                      onSelected: (val) {
                         if (val == 'delete') {
-                          await db.deleteMainTask(task['id']);
+                          context.read<TaskCubit>().deleteTask(task['id']);
                           onRefresh();
                         } else if (val == 'add_item') {
                           showModalBottomSheet(
@@ -102,8 +104,9 @@ class TaskItem extends StatelessWidget {
                           );
                         } else if (val == 'toggle_fav') {
                           final isFav = task['is_favorite'] == 1;
-                          await db.toggleFavorite(task['id'], !isFav);
-                          onRefresh();
+                          context
+                              .read<TaskCubit>()
+                              .toggleFavorite(task['id'], !isFav);
                         }
                       },
                       icon: Icon(Icons.more_vert, color: Colors.grey[800]),

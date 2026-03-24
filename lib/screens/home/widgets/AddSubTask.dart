@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../data/Sqldb.dart';
 
 class AddSubTaskBottomSheet extends StatefulWidget {
-  final int taskId;
+  final String taskId;
   final Function onSubTaskAdded;
 
   const AddSubTaskBottomSheet({

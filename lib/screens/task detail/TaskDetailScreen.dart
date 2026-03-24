@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:todo_app/data/sqldb.dart';
-import 'widgets/s/edit_task_sheet.dart';
-import 'widgets/s/subtask_tile.dart';
+import 'package:todo_app/data/Sqldb.dart';
+import 'widgets/edit_task_sheet.dart';
+import 'widgets/subtask_tile.dart';
 
 class TaskDetailScreen extends StatefulWidget {
-  final int taskId;
+  final String taskId;
   final String taskTitle;
 
   const TaskDetailScreen({
@@ -39,10 +39,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       builder: (context) => EditTaskSheet(
         currentTitle: taskTitle,
         onSave: (newTitle) async {
-          await db.updateData(
-            "UPDATE main_tasks SET title = ? WHERE id = ?",
-            [newTitle, widget.taskId],
-          );
+          await db.updateMainTaskTitle(widget.taskId, newTitle);
           setState(() {
             taskTitle = newTitle;
             updated = true;
@@ -55,14 +52,18 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   Future<List<Map<String, dynamic>>> getSubTasks() =>
       db.getSubTasks(widget.taskId);
 
-  Future<void> toggleDone(int id, bool current) async {
-    await db.updateSubTaskDone(id, !current);
+  Future<void> toggleDone(String id, bool current) async {
+    await db.updateSubTaskDone(
+      taskId: widget.taskId,
+      subTaskId: id,
+      isDone: !current,
+    );
     updated = true;
     setState(() {});
   }
 
-  Future<void> deleteSubTask(int id) async {
-    await db.deleteSubTask(id);
+  Future<void> deleteSubTask(String id) async {
+    await db.deleteSubTask(taskId: widget.taskId, subTaskId: id);
     updated = true;
     setState(() {});
   }

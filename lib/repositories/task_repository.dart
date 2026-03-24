@@ -1,55 +1,25 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class Sqldb {
+class TaskRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  String _currentUid() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw StateError('User is not logged in.');
-    }
-    return user.uid;
-  }
+  String get _uid => _auth.currentUser?.uid ?? '';
 
   CollectionReference<Map<String, dynamic>> _tasksCollection() {
-    return _firestore
-        .collection('users')
-        .doc(_currentUid())
-        .collection('tasks');
+    return _firestore.collection('users').doc(_uid).collection('tasks');
   }
 
   CollectionReference<Map<String, dynamic>> _subTasksCollection(String taskId) {
     return _tasksCollection().doc(taskId).collection('sub_tasks');
   }
 
-  Map<String, dynamic> _taskFromDoc(
-    QueryDocumentSnapshot<Map<String, dynamic>> doc,
-  ) {
-    final data = doc.data();
-    return {
-      'id': doc.id,
-      'title': data['title'] ?? '',
-      'dueDate': data['dueDate'],
-      'color': data['color'] ?? 'FF2196F3',
-      'is_favorite': (data['is_favorite'] ?? false) ? 1 : 0,
-    };
-  }
-
-  Map<String, dynamic> _subTaskFromDoc(
-    QueryDocumentSnapshot<Map<String, dynamic>> doc,
-  ) {
-    final data = doc.data();
-    return {
-      'id': doc.id,
-      'content': data['content'] ?? '',
-      'is_done': (data['is_done'] ?? false) ? 1 : 0,
-    };
-  }
-
+  // ─── Main Tasks ───
   Future<List<Map<String, dynamic>>> getMainTasks() async {
     final snapshot =
         await _tasksCollection().where('is_deleted', isEqualTo: false).get();
+
     final docs = [...snapshot.docs];
     docs.sort((a, b) {
       final aTs = a.data()['created_at'] as Timestamp?;
@@ -60,14 +30,19 @@ class Sqldb {
       return bTs.compareTo(aTs);
     });
 
-    return docs.map(_taskFromDoc).toList();
+    return docs
+        .map((doc) => {
+              'id': doc.id,
+              'title': doc['title'] ?? '',
+              'dueDate': doc['dueDate'],
+              'color': doc['color'] ?? 'FF2196F3',
+              'is_favorite': (doc['is_favorite'] ?? false) ? 1 : 0,
+            })
+        .toList();
   }
 
-  Future<String> insertMainTask(
-    String title,
-    String? dueDate,
-    String color,
-  ) async {
+  Future<String> addMainTask(
+      String title, String? dueDate, String color) async {
     final now = FieldValue.serverTimestamp();
     final docRef = await _tasksCollection().add({
       'title': title,
@@ -79,14 +54,13 @@ class Sqldb {
       'updated_at': now,
       'deleted_at': null,
     });
-
     return docRef.id;
   }
 
-  Future<void> deleteMainTask(String id) async {
+  Future<void> deleteMainTask(String taskId) async {
     final now = FieldValue.serverTimestamp();
-    final taskRef = _tasksCollection().doc(id);
-    final subSnapshot = await _subTasksCollection(id)
+    final taskRef = _tasksCollection().doc(taskId);
+    final subSnapshot = await _subTasksCollection(taskId)
         .where('is_deleted', isEqualTo: false)
         .get();
 
@@ -115,17 +89,19 @@ class Sqldb {
     });
   }
 
-  Future<void> updateMainTaskTitle(String taskId, String title) async {
+  Future<void> updateTaskTitle(String taskId, String title) async {
     await _tasksCollection().doc(taskId).update({
       'title': title,
       'updated_at': FieldValue.serverTimestamp(),
     });
   }
 
+  // ─── Sub Tasks ───
   Future<List<Map<String, dynamic>>> getSubTasks(String taskId) async {
     final snapshot = await _subTasksCollection(taskId)
         .where('is_deleted', isEqualTo: false)
         .get();
+
     final docs = [...snapshot.docs];
     docs.sort((a, b) {
       final aTs = a.data()['created_at'] as Timestamp?;
@@ -136,10 +112,16 @@ class Sqldb {
       return aTs.compareTo(bTs);
     });
 
-    return docs.map(_subTaskFromDoc).toList();
+    return docs
+        .map((doc) => {
+              'id': doc.id,
+              'content': doc['content'] ?? '',
+              'is_done': (doc['is_done'] ?? false) ? 1 : 0,
+            })
+        .toList();
   }
 
-  Future<String> insertSubTask(String taskId, String content) async {
+  Future<String> addSubTask(String taskId, String content) async {
     final now = FieldValue.serverTimestamp();
     final docRef = await _subTasksCollection(taskId).add({
       'content': content,
@@ -157,11 +139,8 @@ class Sqldb {
     return docRef.id;
   }
 
-  Future<void> updateSubTaskDone({
-    required String taskId,
-    required String subTaskId,
-    required bool isDone,
-  }) async {
+  Future<void> toggleSubTaskDone(
+      String taskId, String subTaskId, bool isDone) async {
     final now = FieldValue.serverTimestamp();
     await _subTasksCollection(taskId).doc(subTaskId).update({
       'is_done': isDone,
@@ -173,10 +152,7 @@ class Sqldb {
     });
   }
 
-  Future<void> deleteSubTask({
-    required String taskId,
-    required String subTaskId,
-  }) async {
+  Future<void> deleteSubTask(String taskId, String subTaskId) async {
     final now = FieldValue.serverTimestamp();
     await _subTasksCollection(taskId).doc(subTaskId).update({
       'is_deleted': true,
